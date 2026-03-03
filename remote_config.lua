@@ -18,7 +18,7 @@ return {
     -- ── ANNOUNCEMENT ──────────────────────────────────────
     -- Pesan yang tampil ke semua user saat script dijalankan
     -- Set show_announcement = false kalau tidak mau tampil
-    show_announcement = true,
+    show_announcement = false,
     announcement      = "🔥 Semangat mainnya ya para user!\nAda pertanyaan? Join DC kita.",
 
     -- ── ANNOUNCEMENT DURASI (detik) ───────────────────────
