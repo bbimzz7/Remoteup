@@ -1,0 +1,737 @@
+-- ============================================================
+--  vertict_info.lua  ·  Universal Info & Links Module
+--  by Bimz (@Bimz19) — VertictHub
+--
+--  CARA PAKAI (taruh di paling atas script, sebelum GUI load):
+--
+--      local VertictInfo = loadstring(game:HttpGet(
+--          "https://raw.githubusercontent.com/USERNAME/REPO/main/vertict_info.lua"
+--      ))()
+--      VertictInfo.Init({
+--          config_url = "https://raw.githubusercontent.com/USERNAME/REPO/main/remote_config.lua",
+--          links_url  = "https://raw.githubusercontent.com/USERNAME/REPO/main/links.lua",
+--          version    = "v2.0.0",   -- opsional, buat force_update check
+--      })
+--
+--  Kalau remote_config.enabled = false → GUI script utama TIDAK jalan.
+--  VertictInfo.Init() akan return false kalau disabled.
+--  Contoh:
+--
+--      if not VertictInfo.Init({...}) then return end
+--
+-- ============================================================
+
+local VertictInfo = {}
+
+-- ── Services ───────────────────────────────────────────────
+local Players        = game:GetService("Players")
+local TweenService   = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer    = Players.LocalPlayer
+local PlayerGui      = LocalPlayer:WaitForChild("PlayerGui")
+
+-- ── Utils ──────────────────────────────────────────────────
+
+local function tween(obj, props, t, style, dir)
+    style = style or Enum.EasingStyle.Quart
+    dir   = dir   or Enum.EasingDirection.Out
+    TweenService:Create(obj, TweenInfo.new(t, style, dir), props):Play()
+end
+
+local function makeCorner(parent, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius or 10)
+    c.Parent = parent
+    return c
+end
+
+local function makeStroke(parent, color, thickness, transparency)
+    local s = Instance.new("UIStroke")
+    s.Color        = color or Color3.fromRGB(255,255,255)
+    s.Thickness    = thickness or 1
+    s.Transparency = transparency or 0.85
+    s.Parent       = parent
+    return s
+end
+
+local function makePadding(parent, top, bottom, left, right)
+    local p = Instance.new("UIPadding")
+    p.PaddingTop    = UDim.new(0, top    or 8)
+    p.PaddingBottom = UDim.new(0, bottom or 8)
+    p.PaddingLeft   = UDim.new(0, left   or 10)
+    p.PaddingRight  = UDim.new(0, right  or 10)
+    p.Parent        = parent
+    return p
+end
+
+local function rgb(r,g,b) return Color3.fromRGB(r,g,b) end
+
+-- ── Color Palette ──────────────────────────────────────────
+local C = {
+    bg          = rgb(10,  10,  14),
+    surface     = rgb(18,  18,  24),
+    card        = rgb(24,  24,  32),
+    cardHover   = rgb(30,  30,  42),
+    border      = rgb(255, 255, 255),
+    accent      = rgb(99,  102, 241),   -- indigo
+    accentGlow  = rgb(139, 92,  246),   -- violet
+    accentDim   = rgb(55,  48,  163),
+    success     = rgb(52,  211, 153),
+    warning     = rgb(251, 191, 36),
+    danger      = rgb(239, 68,  68),
+    text        = rgb(248, 250, 252),
+    textMuted   = rgb(148, 163, 184),
+    textDim     = rgb(71,  85,  105),
+    white       = rgb(255, 255, 255),
+}
+
+-- ── Draggable ──────────────────────────────────────────────
+local function makeDraggable(frame, handle)
+    local dragging, dragStart, startPos = false, nil, nil
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging  = true
+            dragStart = input.Position
+            startPos  = frame.Position
+        end
+    end)
+    handle.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
+-- ── Button helper ──────────────────────────────────────────
+local function makeButton(parent, text, bgColor, size, pos)
+    local btn = Instance.new("TextButton")
+    btn.Size            = size or UDim2.new(1, 0, 0, 34)
+    btn.Position        = pos  or UDim2.new(0, 0, 0, 0)
+    btn.BackgroundColor3 = bgColor or C.accent
+    btn.Text            = text
+    btn.TextColor3      = C.white
+    btn.Font            = Enum.Font.GothamBold
+    btn.TextSize        = 13
+    btn.AutoButtonColor = false
+    btn.BorderSizePixel = 0
+    btn.Parent          = parent
+    makeCorner(btn, 8)
+
+    btn.MouseEnter:Connect(function()
+        tween(btn, { BackgroundColor3 = C.accentGlow }, 0.15)
+        tween(btn, { Size = UDim2.new(btn.Size.X.Scale, btn.Size.X.Offset, 0, 36) }, 0.1)
+    end)
+    btn.MouseLeave:Connect(function()
+        tween(btn, { BackgroundColor3 = bgColor or C.accent }, 0.15)
+        tween(btn, { Size = size or UDim2.new(1, 0, 0, 34) }, 0.1)
+    end)
+    btn.MouseButton1Down:Connect(function()
+        tween(btn, { BackgroundColor3 = C.accentDim }, 0.08)
+    end)
+    btn.MouseButton1Up:Connect(function()
+        tween(btn, { BackgroundColor3 = C.accentGlow }, 0.1)
+    end)
+
+    return btn
+end
+
+-- ── Notification (standalone, no WindUI) ───────────────────
+local notifGui
+
+local function showNotif(title, msg, color)
+    color = color or C.accent
+    if notifGui then pcall(function() notifGui:Destroy() end) end
+
+    local sg = Instance.new("ScreenGui")
+    sg.Name            = "VertictNotif"
+    sg.ResetOnSpawn    = false
+    sg.DisplayOrder    = 999
+    sg.ZIndexBehavior  = Enum.ZIndexBehavior.Sibling
+    sg.Parent          = PlayerGui
+    notifGui           = sg
+
+    local frame = Instance.new("Frame")
+    frame.Size              = UDim2.new(0, 300, 0, 70)
+    frame.Position          = UDim2.new(1, 20, 1, -90)
+    frame.BackgroundColor3  = C.surface
+    frame.BorderSizePixel   = 0
+    frame.Parent            = sg
+    makeCorner(frame, 12)
+    makeStroke(frame, color, 1, 0.5)
+
+    -- accent bar kiri
+    local bar = Instance.new("Frame")
+    bar.Size             = UDim2.new(0, 4, 1, -16)
+    bar.Position         = UDim2.new(0, 0, 0, 8)
+    bar.BackgroundColor3 = color
+    bar.BorderSizePixel  = 0
+    bar.Parent           = frame
+    makeCorner(bar, 4)
+
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.Size            = UDim2.new(1, -22, 0, 20)
+    titleLbl.Position        = UDim2.new(0, 14, 0, 8)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text            = title
+    titleLbl.TextColor3      = C.text
+    titleLbl.Font            = Enum.Font.GothamBold
+    titleLbl.TextSize        = 13
+    titleLbl.TextXAlignment  = Enum.TextXAlignment.Left
+    titleLbl.Parent          = frame
+
+    local msgLbl = Instance.new("TextLabel")
+    msgLbl.Size              = UDim2.new(1, -22, 0, 32)
+    msgLbl.Position          = UDim2.new(0, 14, 0, 30)
+    msgLbl.BackgroundTransparency = 1
+    msgLbl.Text              = msg
+    msgLbl.TextColor3        = C.textMuted
+    msgLbl.Font              = Enum.Font.Gotham
+    msgLbl.TextSize          = 11
+    msgLbl.TextXAlignment    = Enum.TextXAlignment.Left
+    msgLbl.TextWrapped       = true
+    msgLbl.Parent            = frame
+
+    -- slide in
+    tween(frame, { Position = UDim2.new(1, -316, 1, -90) }, 0.35)
+
+    task.delay(4, function()
+        tween(frame, { Position = UDim2.new(1, 20, 1, -90) }, 0.3)
+        task.wait(0.35)
+        pcall(function() sg:Destroy() end)
+    end)
+end
+
+-- ── DISABLED SCREEN ────────────────────────────────────────
+local function showDisabledScreen(msg)
+    local sg = Instance.new("ScreenGui")
+    sg.Name           = "VertictDisabled"
+    sg.ResetOnSpawn   = false
+    sg.DisplayOrder   = 9999
+    sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    sg.Parent         = PlayerGui
+
+    -- blur-style dark overlay
+    local overlay = Instance.new("Frame")
+    overlay.Size                 = UDim2.new(1, 0, 1, 0)
+    overlay.BackgroundColor3     = rgb(0, 0, 0)
+    overlay.BackgroundTransparency = 0.45
+    overlay.BorderSizePixel      = 0
+    overlay.ZIndex               = 1
+    overlay.Parent               = sg
+
+    local card = Instance.new("Frame")
+    card.Size               = UDim2.new(0, 360, 0, 220)
+    card.Position           = UDim2.new(0.5, -180, 0.5, -110)
+    card.BackgroundColor3   = C.surface
+    card.BorderSizePixel    = 0
+    card.ZIndex             = 2
+    card.Parent             = sg
+    makeCorner(card, 16)
+    makeStroke(card, C.danger, 1, 0.4)
+
+    -- glow top bar
+    local topBar = Instance.new("Frame")
+    topBar.Size             = UDim2.new(1, 0, 0, 4)
+    topBar.BackgroundColor3 = C.danger
+    topBar.BorderSizePixel  = 0
+    topBar.ZIndex           = 3
+    topBar.Parent           = card
+    makeCorner(topBar, 4)
+
+    local icon = Instance.new("TextLabel")
+    icon.Size               = UDim2.new(1, 0, 0, 40)
+    icon.Position           = UDim2.new(0, 0, 0, 16)
+    icon.BackgroundTransparency = 1
+    icon.Text               = "⛔"
+    icon.TextSize           = 32
+    icon.Font               = Enum.Font.Gotham
+    icon.ZIndex             = 3
+    icon.Parent             = card
+
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.Size           = UDim2.new(1, -32, 0, 24)
+    titleLbl.Position       = UDim2.new(0, 16, 0, 58)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text           = "Script Tidak Tersedia"
+    titleLbl.TextColor3     = C.danger
+    titleLbl.Font           = Enum.Font.GothamBold
+    titleLbl.TextSize       = 16
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Center
+    titleLbl.ZIndex         = 3
+    titleLbl.Parent         = card
+
+    local msgLbl = Instance.new("TextLabel")
+    msgLbl.Size             = UDim2.new(1, -32, 0, 70)
+    msgLbl.Position         = UDim2.new(0, 16, 0, 88)
+    msgLbl.BackgroundTransparency = 1
+    msgLbl.Text             = msg
+    msgLbl.TextColor3       = C.textMuted
+    msgLbl.Font             = Enum.Font.Gotham
+    msgLbl.TextSize         = 12
+    msgLbl.TextXAlignment   = Enum.TextXAlignment.Center
+    msgLbl.TextWrapped      = true
+    msgLbl.ZIndex           = 3
+    msgLbl.Parent           = card
+
+    local closeBtn = makeButton(card, "Tutup", C.danger,
+        UDim2.new(0, 120, 0, 34),
+        UDim2.new(0.5, -60, 1, -48)
+    )
+    closeBtn.ZIndex = 3
+    closeBtn.MouseButton1Click:Connect(function()
+        tween(card, { Position = UDim2.new(0.5, -180, 1.5, 0) }, 0.3)
+        task.wait(0.35)
+        pcall(function() sg:Destroy() end)
+    end)
+
+    -- entrance anim
+    card.Position = UDim2.new(0.5, -180, -0.5, 0)
+    tween(card, { Position = UDim2.new(0.5, -180, 0.5, -110) }, 0.4, Enum.EasingStyle.Back)
+end
+
+-- ── MAIN WINDOW ────────────────────────────────────────────
+local function buildInfoWindow(links, config, version)
+    local sg = Instance.new("ScreenGui")
+    sg.Name           = "VertictInfoGUI"
+    sg.ResetOnSpawn   = false
+    sg.DisplayOrder   = 100
+    sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    sg.Parent         = PlayerGui
+
+    -- Main window
+    local win = Instance.new("Frame")
+    win.Size              = UDim2.new(0, 340, 0, 480)
+    win.Position          = UDim2.new(0.5, -170, 0.5, -240)
+    win.BackgroundColor3  = C.bg
+    win.BorderSizePixel   = 0
+    win.Parent            = sg
+    makeCorner(win, 14)
+    makeStroke(win, C.border, 1, 0.9)
+
+    -- gradient top accent
+    local gradFrame = Instance.new("Frame")
+    gradFrame.Size             = UDim2.new(1, 0, 0, 3)
+    gradFrame.BackgroundColor3 = C.accent
+    gradFrame.BorderSizePixel  = 0
+    gradFrame.Parent           = win
+    makeCorner(gradFrame, 4)
+
+    local grad = Instance.new("UIGradient")
+    grad.Color  = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,   C.accent),
+        ColorSequenceKeypoint.new(1,   C.accentGlow),
+    })
+    grad.Parent = gradFrame
+
+    -- ── Title bar ──
+    local titleBar = Instance.new("Frame")
+    titleBar.Size             = UDim2.new(1, 0, 0, 48)
+    titleBar.Position         = UDim2.new(0, 0, 0, 3)
+    titleBar.BackgroundTransparency = 1
+    titleBar.Parent           = win
+    makeDraggable(win, titleBar)
+
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.Size             = UDim2.new(1, -100, 1, 0)
+    titleLbl.Position         = UDim2.new(0, 16, 0, 0)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text             = "⚡ VertictHub"
+    titleLbl.TextColor3       = C.text
+    titleLbl.Font             = Enum.Font.GothamBold
+    titleLbl.TextSize         = 15
+    titleLbl.TextXAlignment   = Enum.TextXAlignment.Left
+    titleLbl.Parent           = titleBar
+
+    local verLbl = Instance.new("TextLabel")
+    verLbl.Size               = UDim2.new(0, 80, 0, 20)
+    verLbl.Position           = UDim2.new(0, 16, 0, 26)
+    verLbl.BackgroundTransparency = 1
+    verLbl.Text               = version or ""
+    verLbl.TextColor3         = C.accent
+    verLbl.Font               = Enum.Font.GothamMedium
+    verLbl.TextSize           = 11
+    verLbl.TextXAlignment     = Enum.TextXAlignment.Left
+    verLbl.Parent             = win
+
+    -- close button
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size             = UDim2.new(0, 28, 0, 28)
+    closeBtn.Position         = UDim2.new(1, -38, 0, 13)
+    closeBtn.BackgroundColor3 = rgb(40, 40, 52)
+    closeBtn.Text             = "✕"
+    closeBtn.TextColor3       = C.textMuted
+    closeBtn.Font             = Enum.Font.GothamBold
+    closeBtn.TextSize         = 12
+    closeBtn.AutoButtonColor  = false
+    closeBtn.BorderSizePixel  = 0
+    closeBtn.Parent           = win
+    makeCorner(closeBtn, 8)
+    closeBtn.MouseEnter:Connect(function()
+        tween(closeBtn, { BackgroundColor3 = C.danger, TextColor3 = C.white }, 0.15)
+    end)
+    closeBtn.MouseLeave:Connect(function()
+        tween(closeBtn, { BackgroundColor3 = rgb(40,40,52), TextColor3 = C.textMuted }, 0.15)
+    end)
+    closeBtn.MouseButton1Click:Connect(function()
+        tween(win, { Position = UDim2.new(0.5, -170, 1.5, 0), BackgroundTransparency = 1 }, 0.3)
+        task.wait(0.35)
+        pcall(function() sg:Destroy() end)
+    end)
+
+    -- divider
+    local divider = Instance.new("Frame")
+    divider.Size             = UDim2.new(1, -32, 0, 1)
+    divider.Position         = UDim2.new(0, 16, 0, 54)
+    divider.BackgroundColor3 = C.border
+    divider.BackgroundTransparency = 0.9
+    divider.BorderSizePixel  = 0
+    divider.Parent           = win
+
+    -- ── Tab bar ──
+    local tabBar = Instance.new("Frame")
+    tabBar.Size             = UDim2.new(1, -32, 0, 32)
+    tabBar.Position         = UDim2.new(0, 16, 0, 62)
+    tabBar.BackgroundColor3 = C.card
+    tabBar.BorderSizePixel  = 0
+    tabBar.Parent           = win
+    makeCorner(tabBar, 8)
+
+    local tabLayout = Instance.new("UIListLayout")
+    tabLayout.FillDirection = Enum.FillDirection.Horizontal
+    tabLayout.Padding       = UDim.new(0, 4)
+    tabLayout.Parent        = tabBar
+    makePadding(tabBar, 4, 4, 4, 4)
+
+    -- ── Content area ──
+    local contentArea = Instance.new("Frame")
+    contentArea.Size             = UDim2.new(1, -32, 1, -112)
+    contentArea.Position         = UDim2.new(0, 16, 0, 102)
+    contentArea.BackgroundTransparency = 1
+    contentArea.ClipsDescendants = true
+    contentArea.Parent           = win
+
+    -- ── Tab pages ──
+    local pages = {}
+    local activePage = nil
+    local activeTabBtn = nil
+
+    local function switchTab(name, btn)
+        for pname, page in pairs(pages) do
+            page.Visible = (pname == name)
+        end
+        if activeTabBtn then
+            tween(activeTabBtn, {
+                BackgroundColor3 = Color3.fromRGB(0,0,0),
+                TextColor3       = C.textMuted,
+                BackgroundTransparency = 1,
+            }, 0.15)
+        end
+        tween(btn, {
+            BackgroundColor3 = C.accent,
+            TextColor3       = C.white,
+            BackgroundTransparency = 0,
+        }, 0.15)
+        activePage  = name
+        activeTabBtn = btn
+    end
+
+    local function makeTab(name, label)
+        local btn = Instance.new("TextButton")
+        btn.Size                 = UDim2.new(0.5, -2, 1, 0)
+        btn.BackgroundColor3     = C.accent
+        btn.BackgroundTransparency = 1
+        btn.Text                 = label
+        btn.TextColor3           = C.textMuted
+        btn.Font                 = Enum.Font.GothamMedium
+        btn.TextSize             = 12
+        btn.AutoButtonColor      = false
+        btn.BorderSizePixel      = 0
+        btn.Parent               = tabBar
+        makeCorner(btn, 6)
+
+        local page = Instance.new("ScrollingFrame")
+        page.Size                = UDim2.new(1, 0, 1, 0)
+        page.BackgroundTransparency = 1
+        page.BorderSizePixel     = 0
+        page.ScrollBarThickness  = 2
+        page.ScrollBarImageColor3 = C.accent
+        page.CanvasSize          = UDim2.new(0, 0, 0, 0)
+        page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        page.Visible             = false
+        page.Parent              = contentArea
+
+        local layout = Instance.new("UIListLayout")
+        layout.Padding           = UDim.new(0, 8)
+        layout.SortOrder         = Enum.SortOrder.LayoutOrder
+        layout.Parent            = page
+        makePadding(page, 4, 8, 0, 4)
+
+        pages[name] = page
+
+        btn.MouseButton1Click:Connect(function()
+            switchTab(name, btn)
+        end)
+
+        return btn, page, layout
+    end
+
+    local linksTabBtn,  linksPage,  linksLayout  = makeTab("links",  "🔗 Links")
+    local infoTabBtn,   infoPage,   infoLayout   = makeTab("info",   "ℹ️ Info")
+
+    -- activate first tab
+    switchTab("links", linksTabBtn)
+
+    -- ── Card builder ──
+    local function makeCard(parent, layout)
+        local card = Instance.new("Frame")
+        card.Size             = UDim2.new(1, 0, 0, 0)
+        card.AutomaticSize    = Enum.AutomaticSize.Y
+        card.BackgroundColor3 = C.card
+        card.BorderSizePixel  = 0
+        card.LayoutOrder      = layout and (#parent:GetChildren()) or 0
+        card.Parent           = parent
+        makeCorner(card, 10)
+        makeStroke(card, C.border, 1, 0.92)
+        makePadding(card, 10, 10, 12, 12)
+
+        local innerLayout = Instance.new("UIListLayout")
+        innerLayout.Padding   = UDim.new(0, 6)
+        innerLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        innerLayout.Parent    = card
+
+        return card, innerLayout
+    end
+
+    local function makeLabel(parent, text, color, size, bold, order)
+        local lbl = Instance.new("TextLabel")
+        lbl.Size                 = UDim2.new(1, 0, 0, 0)
+        lbl.AutomaticSize        = Enum.AutomaticSize.Y
+        lbl.BackgroundTransparency = 1
+        lbl.Text                 = text
+        lbl.TextColor3           = color or C.text
+        lbl.Font                 = bold and Enum.Font.GothamBold or Enum.Font.Gotham
+        lbl.TextSize             = size or 12
+        lbl.TextXAlignment       = Enum.TextXAlignment.Left
+        lbl.TextWrapped          = true
+        lbl.LayoutOrder          = order or 0
+        lbl.Parent               = parent
+        return lbl
+    end
+
+    -- ── LINKS PAGE ──────────────────────────────────────────
+    for i, link in ipairs(links) do
+        local card, innerLayout = makeCard(linksPage)
+        card.LayoutOrder = i
+
+        -- header row
+        local headerRow = Instance.new("Frame")
+        headerRow.Size             = UDim2.new(1, 0, 0, 22)
+        headerRow.BackgroundTransparency = 1
+        headerRow.LayoutOrder      = 1
+        headerRow.Parent           = card
+
+        local iconLbl = Instance.new("TextLabel")
+        iconLbl.Size               = UDim2.new(0, 22, 1, 0)
+        iconLbl.BackgroundTransparency = 1
+        iconLbl.Text               = link.icon or "🔗"
+        iconLbl.TextSize           = 16
+        iconLbl.Font               = Enum.Font.Gotham
+        iconLbl.Parent             = headerRow
+
+        local nameLbl = Instance.new("TextLabel")
+        nameLbl.Size               = UDim2.new(1, -22, 1, 0)
+        nameLbl.Position           = UDim2.new(0, 24, 0, 0)
+        nameLbl.BackgroundTransparency = 1
+        nameLbl.Text               = link.name or "Link"
+        nameLbl.TextColor3         = C.text
+        nameLbl.Font               = Enum.Font.GothamBold
+        nameLbl.TextSize           = 13
+        nameLbl.TextXAlignment     = Enum.TextXAlignment.Left
+        nameLbl.Parent             = headerRow
+
+        if link.desc and link.desc ~= "" then
+            makeLabel(card, link.desc, C.textMuted, 11, false, 2)
+        end
+
+        -- url label
+        local urlLbl = makeLabel(card, link.url, C.accent, 10, false, 3)
+        urlLbl.TextTruncate = Enum.TextTruncate.AtEnd
+
+        -- copy button
+        local copyBtn = makeButton(card, "📋  Salin Link", C.accent,
+            UDim2.new(1, 0, 0, 30)
+        )
+        copyBtn.LayoutOrder = 4
+        copyBtn.MouseButton1Click:Connect(function()
+            pcall(function() setclipboard(link.url) end)
+            local orig = copyBtn.Text
+            copyBtn.Text = "✓  Tersalin!"
+            tween(copyBtn, { BackgroundColor3 = C.success }, 0.1)
+            task.delay(1.5, function()
+                copyBtn.Text = orig
+                tween(copyBtn, { BackgroundColor3 = C.accent }, 0.2)
+            end)
+        end)
+
+        -- hover card effect
+        card.MouseEnter:Connect(function()
+            tween(card, { BackgroundColor3 = C.cardHover }, 0.15)
+        end)
+        card.MouseLeave:Connect(function()
+            tween(card, { BackgroundColor3 = C.card }, 0.15)
+        end)
+    end
+
+    -- ── INFO PAGE ───────────────────────────────────────────
+
+    -- about card
+    local aboutCard, aboutLayout = makeCard(infoPage)
+    aboutCard.LayoutOrder = 1
+    makeLabel(aboutCard, "⚡ VertictHub", C.accent, 15, true, 1)
+    makeLabel(aboutCard, "Script Sambung Kata otomatis dengan database KBBI & Umum.", C.textMuted, 11, false, 2)
+
+    local metaFrame = Instance.new("Frame")
+    metaFrame.Size             = UDim2.new(1, 0, 0, 0)
+    metaFrame.AutomaticSize    = Enum.AutomaticSize.Y
+    metaFrame.BackgroundTransparency = 1
+    metaFrame.LayoutOrder      = 3
+    metaFrame.Parent           = aboutCard
+
+    local metaLayout = Instance.new("UIListLayout")
+    metaLayout.Padding = UDim.new(0, 3)
+    metaLayout.Parent  = metaFrame
+
+    local function metaRow(label, value, valueColor)
+        local row = Instance.new("Frame")
+        row.Size             = UDim2.new(1, 0, 0, 16)
+        row.BackgroundTransparency = 1
+        row.Parent           = metaFrame
+
+        local lbl = Instance.new("TextLabel")
+        lbl.Size             = UDim2.new(0.38, 0, 1, 0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text             = label
+        lbl.TextColor3       = C.textDim
+        lbl.Font             = Enum.Font.Gotham
+        lbl.TextSize         = 11
+        lbl.TextXAlignment   = Enum.TextXAlignment.Left
+        lbl.Parent           = row
+
+        local val = Instance.new("TextLabel")
+        val.Size             = UDim2.new(0.62, 0, 1, 0)
+        val.Position         = UDim2.new(0.38, 0, 0, 0)
+        val.BackgroundTransparency = 1
+        val.Text             = value
+        val.TextColor3       = valueColor or C.text
+        val.Font             = Enum.Font.GothamMedium
+        val.TextSize         = 11
+        val.TextXAlignment   = Enum.TextXAlignment.Left
+        val.Parent           = row
+    end
+
+    metaRow("Versi",   version or "-",   C.accent)
+    metaRow("Dibuat",  "Bimz (@Bimz19)", C.text)
+    metaRow("Engine",  "WindUI",         C.textMuted)
+
+    -- announcement card (jika ada)
+    if config and config.show_announcement and config.announcement and config.announcement ~= "" then
+        local annCard, _ = makeCard(infoPage)
+        annCard.LayoutOrder = 2
+        makeLabel(annCard, "📢 Announcement", C.warning, 13, true, 1)
+        makeLabel(annCard, config.announcement, C.textMuted, 11, false, 2)
+        makeStroke(annCard, C.warning, 1, 0.5)
+    end
+
+    -- credits card
+    local credCard, _ = makeCard(infoPage)
+    credCard.LayoutOrder = 3
+    makeLabel(credCard, "Credits", C.textDim, 11, true, 1)
+    makeLabel(credCard, "UI Lib  : WindUI by Footagesus\nDatabase: KBBI & Umum\nCommunity: VertictHub", C.textMuted, 11, false, 2)
+
+    -- entrance animation
+    win.Position = UDim2.new(0.5, -170, -0.5, 0)
+    win.BackgroundTransparency = 1
+    tween(win, {
+        Position = UDim2.new(0.5, -170, 0.5, -240),
+        BackgroundTransparency = 0,
+    }, 0.4, Enum.EasingStyle.Back)
+
+    return sg
+end
+
+-- ── INIT ───────────────────────────────────────────────────
+
+function VertictInfo.Init(cfg)
+    cfg = cfg or {}
+
+    local version    = cfg.version    or ""
+    local configUrl  = cfg.config_url or ""
+    local linksUrl   = cfg.links_url  or ""
+
+    -- Load remote config
+    local remoteConfig = {
+        enabled           = true,
+        show_announcement = false,
+        announcement      = "",
+        force_update      = false,
+        minimum_version   = "",
+        update_message    = "",
+        disabled_message  = "Script sedang tidak tersedia.",
+    }
+
+    if configUrl ~= "" then
+        pcall(function()
+            local loaded = loadstring(game:HttpGet(configUrl))()
+            for k, v in pairs(loaded) do
+                remoteConfig[k] = v
+            end
+        end)
+    end
+
+    -- Cek enabled
+    if not remoteConfig.enabled then
+        showDisabledScreen(remoteConfig.disabled_message)
+        pcall(function() setclipboard("https://discord.gg/ENuuqg6Zg") end)
+        return false
+    end
+
+    -- Cek force update
+    if remoteConfig.force_update and version ~= "" and remoteConfig.minimum_version ~= "" then
+        if version < remoteConfig.minimum_version then
+            showDisabledScreen(remoteConfig.update_message)
+            pcall(function() setclipboard("https://discord.gg/ENuuqg6Zg") end)
+            return false
+        end
+    end
+
+    -- Load links
+    local links = {}
+    if linksUrl ~= "" then
+        pcall(function()
+            links = loadstring(game:HttpGet(linksUrl))()
+        end)
+    end
+
+    -- Build GUI
+    buildInfoWindow(links, remoteConfig, version)
+
+    -- Announcement notif
+    if remoteConfig.show_announcement and remoteConfig.announcement ~= "" then
+        task.delay(1.5, function()
+            showNotif("📢 Announcement", remoteConfig.announcement, C.warning)
+        end)
+    end
+
+    return true
+end
+
+return VertictInfo
