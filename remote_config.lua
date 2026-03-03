@@ -13,7 +13,7 @@ return {
 
     -- ── PESAN SAAT DISABLED ───────────────────────────────
     -- Tampil ke user kalau enabled = false
-    disabled_message = "⛔ Script sedang dalam maintenance.\nJoin Discord untuk info update terbaru!\nhttps://discord.gg/ENuuqg6Zg",
+    disabled_message = "⛔ Script sedang dalam maintenance.\nJoin Discord untuk info update terbaru!\nhttps://discord.gg/ENuuqg6Zg. Link sudah otomatis tersalin cek di papan klip anda.",
 
     -- ── ANNOUNCEMENT ──────────────────────────────────────
     -- Pesan yang tampil ke semua user saat script dijalankan
