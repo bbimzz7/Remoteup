@@ -20,15 +20,15 @@ return {
     },
 
     -- ── TAMBAH SCRIPT BARU DI SINI ────────────────────────
-    -- ["nama_script"] = {
-    --     enabled           = true,
-    --     disabled_message  = "Script lagi maintenance.",
-    --     show_announcement = false,
-    --     announcement      = "",
-    --     announcement_duration = 4,
-    --     force_update      = false,
-    --     minimum_version   = "v1.0.0",
-    --     update_message    = "Update dulu ya!",
-    -- },
+     ["violence_district"] = {
+        enabled           = true,
+        disabled_message  = "Script lagi maintenance.",
+        show_announcement = false,
+        announcement      = "",
+        announcement_duration = 4,
+        force_update      = false,
+        minimum_version   = "v1.0.0",
+        update_message    = "Update dulu ya!",
+   },
 
 }
