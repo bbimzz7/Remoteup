@@ -21,7 +21,7 @@ return {
 
     -- ── TAMBAH SCRIPT BARU DI SINI ────────────────────────
      ["violence_district"] = {
-        enabled           = true,
+        enabled           = false,
         disabled_message  = "Script lagi maintenance.",
         show_announcement = false,
         announcement      = "",
