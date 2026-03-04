@@ -3,6 +3,7 @@ local VertictInfo = loadstring(game:HttpGet(
 ))()
 
 if not VertictInfo.Init({
+    script_id  = "nama_script",
     version    = SCRIPT_VERSION,
     config_url = "https://raw.githubusercontent.com/bbimzz7/Remoteup/refs/heads/main/remote_config.lua",
     links_url  = "https://raw.githubusercontent.com/bbimzz7/Remoteup/refs/heads/main/links.lua",
