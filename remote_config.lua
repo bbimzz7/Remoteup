@@ -9,7 +9,7 @@ return {
     -- ── MASTER SWITCH ─────────────────────────────────────
     -- true  = script jalan normal
     -- false = GUI tidak dimuat, hanya pesan di bawah yang tampil
-    enabled = false,
+    enabled = true,
 
     -- ── PESAN SAAT DISABLED ───────────────────────────────
     -- Tampil ke user kalau enabled = false
