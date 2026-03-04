@@ -674,6 +674,7 @@ function VertictInfo.Init(cfg)
     cfg = cfg or {}
 
     local version    = cfg.version    or ""
+    local scriptId  = cfg.script_id  or ""
     local configUrl  = cfg.config_url or ""
     local linksUrl   = cfg.links_url  or ""
 
@@ -686,12 +687,15 @@ function VertictInfo.Init(cfg)
         minimum_version   = "",
         update_message    = "",
         disabled_message  = "Script sedang tidak tersedia.",
+        discord_url       = "https://discord.gg/ENuuqg6Zg",
     }
 
     if configUrl ~= "" then
         pcall(function()
             local loaded = loadstring(game:HttpGet(configUrl))()
-            for k, v in pairs(loaded) do
+            -- Support per-script config (key by script_id) atau flat config lama
+            local src = (scriptId ~= "" and loaded[scriptId]) or loaded
+            for k, v in pairs(src) do
                 remoteConfig[k] = v
             end
         end)
@@ -700,7 +704,7 @@ function VertictInfo.Init(cfg)
     -- Cek enabled
     if not remoteConfig.enabled then
         showDisabledScreen(remoteConfig.disabled_message)
-        pcall(function() setclipboard("https://discord.gg/ENuuqg6Zg") end)
+        pcall(function() setclipboard(remoteConfig.discord_url) end)
         return false
     end
 
@@ -708,7 +712,7 @@ function VertictInfo.Init(cfg)
     if remoteConfig.force_update and version ~= "" and remoteConfig.minimum_version ~= "" then
         if version < remoteConfig.minimum_version then
             showDisabledScreen(remoteConfig.update_message)
-            pcall(function() setclipboard("https://discord.gg/ENuuqg6Zg") end)
+            pcall(function() setclipboard(remoteConfig.discord_url) end)
             return false
         end
     end
@@ -720,6 +724,9 @@ function VertictInfo.Init(cfg)
             links = loadstring(game:HttpGet(linksUrl))()
         end)
     end
+
+    -- Auto clipboard DC link saat execute
+    pcall(function() setclipboard(remoteConfig.discord_url) end)
 
     -- Build GUI
     buildInfoWindow(links, remoteConfig, version)
