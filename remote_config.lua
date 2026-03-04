@@ -22,7 +22,7 @@ return {
     -- ── TAMBAH SCRIPT BARU DI SINI ────────────────────────
      ["violence_district"] = {
         enabled           = false,
-        disabled_message  = "Script lagi maintenance.",
+        disabled_message  = "Ramaikan Discord Dulu ya, 100 members langsung publikasi. link discord sudah tersalin otomatis cek papan klip anda.",
         show_announcement = false,
         announcement      = "",
         announcement_duration = 4,
