@@ -33,7 +33,7 @@ return {
 
      ["sambung"] = {
         enabled           = false,
-        disabled_message  = "⛔ Sambung Kata telah dinonaktifkan .\nJoin Discord untuk ambil script update!\nhttps://discord.gg/ENuuqg6Zg",
+        disabled_message  = "⛔ Sambung Kata telah dinonaktifkan .\nJoin Discord untuk ambil link script update!, link otomatis sudah tersalin xek di papan klip anda.\nhttps://discord.gg/ENuuqg6Zg",
         show_announcement = true,
         announcement      = "🔥 Semangat main Sambung Kata!\nAda pertanyaan? Join DC kita.",
         announcement_duration = 6,
