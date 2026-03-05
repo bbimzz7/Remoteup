@@ -31,4 +31,16 @@ return {
         update_message    = "Update dulu ya!",
    },
 
+     ["sambung"] = {
+        enabled           = true,
+        disabled_message  = "⛔ Sambung Kata lagi maintenance.\nJoin Discord untuk update!\nhttps://discord.gg/ENuuqg6Zg",
+        show_announcement = true,
+        announcement      = "🔥 Semangat main Sambung Kata!\nAda pertanyaan? Join DC kita.",
+        announcement_duration = 6,
+        discord_url       = "https://discord.gg/ENuuqg6Zg",
+        force_update      = false,
+        minimum_version   = "v2.0.0",
+        update_message    = "⚠️ Script kamu outdated!\nAmbil versi terbaru di Discord:\nhttps://discord.gg/ENuuqg6Zg",
+    },
+    
 }
