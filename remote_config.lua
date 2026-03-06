@@ -42,5 +42,27 @@ return {
         minimum_version   = "v2.0.0",
         update_message    = "⚠️ Script kamu outdated!\nAmbil versi terbaru di Discord:\nhttps://discord.gg/fVVZWMwmKG",
     },
+
+     ["violence_district_dy"] = {
+        enabled           = true,
+        disabled_message  = "Ramaikan Discord Dulu ya, 100 members langsung publikasi. link discord sudah tersalin otomatis cek papan klip anda.",
+        show_announcement = false,
+        announcement      = "",
+        announcement_duration = 4,
+        force_update      = false,
+        minimum_version   = "v1.0.0",
+        update_message    = "Update dulu ya!",
+   },
+
+     ["evade"] = {
+        enabled           = true,
+        disabled_message  = "evade disable. link discord sudah tersalin otomatis cek papan klip anda.",
+        show_announcement = false,
+        announcement      = "",
+        announcement_duration = 4,
+        force_update      = false,
+        minimum_version   = "v1.0.0",
+        update_message    = "Update dulu ya!",
+   },
     
 }
