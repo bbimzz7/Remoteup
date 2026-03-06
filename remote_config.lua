@@ -57,7 +57,7 @@ return {
    },
 
      ["evade"] = {
-        enabled           = false,
+        enabled           = true,
         disabled_message  = "evade disable, sabar. link discord sudah tersalin otomatis cek papan klip anda.",
         show_announcement = false,
         announcement      = "",
