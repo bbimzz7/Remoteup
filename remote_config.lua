@@ -9,14 +9,14 @@ return {
     -- ── SAMBUNG KATA ───────────────────────────────────────
     ["sambung_kata"] = {
         enabled           = true,
-        disabled_message  = "⛔ sabar bentar lagi di buka.\nJoin Discord untuk update!\nhttps://discord.gg/ENuuqg6Zg",
+        disabled_message  = "⛔ sabar bentar lagi di buka.\nJoin Discord untuk update!\nhttps://discord.gg/fVVZWMwmKG",
         show_announcement = true,
         announcement      = "🔥 Semangat main Sambung Kata!\nAda pertanyaan? Join DC kita.",
         announcement_duration = 6,
         discord_url       = "https://discord.gg/fVVZWMwmKG",
         force_update      = false,
         minimum_version   = "v2.0.0",
-        update_message    = "⚠️ Script kamu outdated!\nAmbil versi terbaru di Discord:\nhttps://discord.gg/ENuuqg6Zg",
+        update_message    = "⚠️ Script kamu outdated!\nAmbil versi terbaru di Discord:\nhttps://discord.gg/fVVZWMwmKG",
     },
 
     -- ── TAMBAH SCRIPT BARU DI SINI ────────────────────────
@@ -33,14 +33,14 @@ return {
 
      ["sambung"] = {
         enabled           = false,
-        disabled_message  = "⛔ Sambung Kata telah dinonaktifkan .\nJoin Discord untuk ambil link script update!, link otomatis sudah tersalin xek di papan klip anda.\nhttps://discord.gg/ENuuqg6Zg",
+        disabled_message  = "⛔ Sambung Kata telah dinonaktifkan .\nJoin Discord untuk ambil link script update!, link otomatis sudah tersalin xek di papan klip anda.\nhttps://discord.gg/fVVZWMwmKG",
         show_announcement = true,
         announcement      = "🔥 Semangat main Sambung Kata!\nAda pertanyaan? Join DC kita.",
         announcement_duration = 6,
         discord_url       = "https://discord.gg/fVVZWMwmKG",
         force_update      = false,
         minimum_version   = "v2.0.0",
-        update_message    = "⚠️ Script kamu outdated!\nAmbil versi terbaru di Discord:\nhttps://discord.gg/ENuuqg6Zg",
+        update_message    = "⚠️ Script kamu outdated!\nAmbil versi terbaru di Discord:\nhttps://discord.gg/fVVZWMwmKG",
     },
     
 }
