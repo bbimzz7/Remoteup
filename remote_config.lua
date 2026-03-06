@@ -45,8 +45,8 @@ return {
     },
 
      ["violence_district_dy"] = {
-        enabled           = true,
-        disabled_message  = "Ramaikan Discord Dulu ya, 100 members langsung publikasi. link discord sudah tersalin otomatis cek papan klip anda.",
+        enabled           = false,
+        disabled_message  = "wait for public. link discord sudah tersalin otomatis cek papan klip anda.",
         show_announcement = false,
         announcement      = "",
         announcement_duration = 4,
