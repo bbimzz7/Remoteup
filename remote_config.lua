@@ -8,7 +8,7 @@ return {
 
     -- ── SAMBUNG KATA ───────────────────────────────────────
     ["sambung_kata"] = {
-        enabled           = false,
+        enabled           = true,
         disabled_message  = "⛔ script lagi maintenance sebentar.\nJoin Discord untuk update!\nhttps://discord.gg/fVVZWMwmKG",
         show_announcement = true,
         announcement      = "🔥 Semangat main Sambung Kata!\nAda pertanyaan? Join DC kita.",
