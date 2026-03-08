@@ -288,7 +288,10 @@ local function showDisabledScreen(msg)
     )
     closeBtn.ZIndex = 3
     closeBtn.MouseButton1Click:Connect(function()
-        tween(card, { Position = UDim2.new(0.5, -180, 1.5, 0) }, 0.3)
+        closeBtn.Active = false
+        pcall(function()
+            tween(card, { Position = UDim2.new(0.5, -180, 1.5, 0) }, 0.3)
+        end)
         task.wait(0.35)
         pcall(function() sg:Destroy() end)
     end)
@@ -309,8 +312,8 @@ local function buildInfoWindow(links, config, version)
 
     -- Main window
     local win = Instance.new("Frame")
-    win.Size              = UDim2.new(0, 340, 0, 480)
-    win.Position          = UDim2.new(0.5, -170, 0.5, -240)
+    win.Size              = UDim2.new(0, 300, 0, 420)
+    win.Position          = UDim2.new(0.5, -150, 0.5, -210)
     win.BackgroundColor3  = C.bg
     win.BorderSizePixel   = 0
     win.Parent            = sg
@@ -382,9 +385,13 @@ local function buildInfoWindow(links, config, version)
         tween(closeBtn, { BackgroundColor3 = rgb(40,40,52), TextColor3 = C.textMuted }, 0.15)
     end)
     closeBtn.MouseButton1Click:Connect(function()
-        tween(win, { Position = UDim2.new(0.5, -170, 1.5, 0), BackgroundTransparency = 1 }, 0.3)
+        closeBtn.Active = false
+        local ok = pcall(function()
+            tween(win, { Position = UDim2.new(0.5, -150, 1.5, 0), BackgroundTransparency = 1 }, 0.3)
+        end)
         task.wait(0.35)
         pcall(function() sg:Destroy() end)
+        if not ok then pcall(function() sg:Destroy() end) end
     end)
 
     -- divider
@@ -658,10 +665,10 @@ local function buildInfoWindow(links, config, version)
     makeLabel(credCard, "UI Lib  : WindUI by Footagesus\nDatabase: KBBI & Umum\nCommunity: VertictHub", C.textMuted, 11, false, 2)
 
     -- entrance animation
-    win.Position = UDim2.new(0.5, -170, -0.5, 0)
+    win.Position = UDim2.new(0.5, -150, -0.5, 0)
     win.BackgroundTransparency = 1
     tween(win, {
-        Position = UDim2.new(0.5, -170, 0.5, -240),
+        Position = UDim2.new(0.5, -150, 0.5, -210),
         BackgroundTransparency = 0,
     }, 0.4, Enum.EasingStyle.Back)
 
