@@ -71,7 +71,7 @@ return {
 }
 
      ["sawah_indo"] = {
-        enabled           = true,
+        enabled           = false,
         disabled_message  = "sawah disable, sabar. link discord sudah tersalin otomatis cek papan klip anda.",
         show_announcement = false,
         announcement      = "",
