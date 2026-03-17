@@ -67,8 +67,6 @@ return {
         minimum_version   = "v1.0.0",
         update_message    = "Update dulu ya!",
    },
-    
-}
 
      ["sawah_indo"] = {
         enabled           = false,
@@ -81,8 +79,6 @@ return {
         minimum_version   = "v1.0.0",
         update_message    = "Update dulu ya!",
    },
-    
-}
 
 ["plant_brainrot"] = {
         enabled           = true,
