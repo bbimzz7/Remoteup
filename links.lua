@@ -18,7 +18,7 @@ return {
     {
         name  = "Discord",
         icon  = "🎮",
-        url   = "https://discord.gg/ENuuqg6Zg",
+        url   = "https://discord.gg/fVVZWMwmKG",
         desc  = "Server utama VertictHub — update & support",
     },
     {
