@@ -80,9 +80,21 @@ return {
         update_message    = "Update dulu ya!",
    },
 
-["plant_brainrot"] = {
+     ["plant_brainrot"] = {
         enabled           = true,
         disabled_message  = "plants disable, sabar. link discord sudah tersalin otomatis cek papan klip anda.",
+        show_announcement = false,
+        announcement      = "",
+        announcement_duration = 4,
+        discord_url       = "https://discord.gg/fVVZWMwmKG",
+        force_update      = false,
+        minimum_version   = "v1.0.0",
+        update_message    = "Update dulu ya!",
+   },
+
+     ["swing_obby"] = {
+        enabled           = true,
+        disabled_message  = "Ramaikan Discord Dulu ya, 100 members langsung publikasi. link discord sudah tersalin otomatis cek papan klip anda.",
         show_announcement = false,
         announcement      = "",
         announcement_duration = 4,
